@@ -1,0 +1,99 @@
+.drag-wrapper {
+  cursor: pointer;
+  background-color: #ccc;
+  position: absolute;
+  box-sizing: border-box;
+  word-break: break-all;
+  // border: 1px solid #70c0ff;
+  outline: 1px solid black;
+
+  .drag-item {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+
+    img {
+      -webkit-user-drag: none;
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  .drag-point{
+    position: absolute;
+    background: transparent;
+    // border: 1px solid #59c7f9;
+    // border-color: transparent;
+    width: 18px;
+    height: 18px;
+    // border-radius: 50%;
+    user-select: none;
+  }
+  .drag-point.point-east{
+    left: 100%;
+    top: 0;
+    margin-left: -8px;
+    // margin-top: -8px;
+    cursor: e-resize;
+    height: 100%;
+  }
+  .drag-point.point-north{
+    // margin-left: -8px;
+    margin-top: -8px;
+    // left: 50%;
+    left: 0;
+    width: 100%;
+    top: 0;
+    cursor: n-resize;
+  }
+  .drag-point.point-south{
+    // margin-left: -8px;
+    margin-top: -8px;
+    // left: 50%;
+    left: 0;
+    width: 100%;
+    top: 100%;
+    cursor: s-resize;
+  }
+  .drag-point.point-west{
+    margin-left: -8px;
+    // margin-top: -8px;
+    left: 0px;
+    // top: 50%;
+    top: 0;
+    height: 100%;
+    cursor: w-resize;
+  }
+  .drag-point.point-northeast {
+    margin-left: -8px;
+    margin-top: -8px;
+    left: 100%;
+    top: 0px;
+    z-index: 1;
+    cursor: ne-resize;
+  }
+  .drag-point.point-northwest {
+    margin-left: -8px;
+    margin-top: -8px;
+    left: 0px;
+    top: 0px;
+    z-index: 1;
+    cursor: nw-resize;
+  }
+  .drag-point.point-southeast {
+    margin-left: -8px;
+    margin-top: -8px;
+    left: 100%;
+    top: 100%;
+    z-index: 1;
+    cursor: se-resize;
+}
+  .drag-point.point-southwest {
+    margin-left: -8px;
+    margin-top: -8px;
+    left: 0px;
+    top: 100%;
+    z-index: 1;
+    cursor: sw-resize;
+  }
+}
