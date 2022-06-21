@@ -25,23 +25,24 @@ export interface Item {
 }
 interface State {
   items: Item[] 
+  items2: Item[]
 }
 class App extends Component<{}, State> {
   constructor(props) {
     super(props);
 
+    this.el = null;
     this.state = {
-      items: [
+      items2: [
         {
           type: "image",
           top: 0,
           left: 0,
           index: 1,
           width: 200,
-          height: 150,
-          value: require('./default.jpg'),
+          height: 200,
+          value: 'https://media.deca.art/static/0x495f947276749ce646f68ac8c248420045cb7b5e/20973156443705115113792982080402275335274697976325416737038491145560934842369?width=1000',
           current: false,
-          id: getUUID(),
         },
         {
           type: "image",
@@ -49,10 +50,9 @@ class App extends Component<{}, State> {
           left: 0,
           index: 1,
           width: 200,
-          height: 150,
-          value: 'https://cdn-images.chanmama.com/douyin/product/bfbbce821dc8c503f51c4f93357b8452.jpeg?source=https%3A%2F%2Fp3-aio.ecombdimg.com%2Flarge%2Ftemai%2Febf0d190c54a95b37a7187dc855a8b69www800-800',
+          height: 200,
+          value: 'https://media.deca.art/static/0x495f947276749ce646f68ac8c248420045cb7b5e/48037275871633193830421594285625459086251650415150495168122987868918474866689?width=1000',
           current: false,
-          id: getUUID(),
         },
         {
           type: "image",
@@ -60,14 +60,27 @@ class App extends Component<{}, State> {
           left: 300,
           index: 1,
           width: 200,
-          height: 150,
-          value: require('./default.jpg'),
+          height: 200,
+          value: 'https://media.deca.art/static/0xaA20f900e24cA7Ed897C44D92012158f436ef791/161?width=1000',
           current: false,
           id: getUUID(),
+        },
+        {
+          type: "text",
+          top: 0,
+          left: 300,
+          index: 1,
+          width: 200,
+          height: 50,
+          value: '',
+          current: false,
         }
-      ]
+      ],
+      items: JSON.parse(localStorage.getItem('items')) || []
     }
   }
+
+  el: any;
 
   handleDragOver(e) {
     e.preventDefault()
@@ -76,8 +89,13 @@ class App extends Component<{}, State> {
 
   renderItem(item: Item) {
     if (item.type === 'image') {
-      return <img src={item.value} alt="" />
+      return  <div className="image-content"><img src={item.value} alt="" /></div>
     }
+
+    if (item.type === 'text') {
+      return  <input onChange={(e) => this.handleInputChange(e, item)} value={item.value} />;
+    }
+
      
     return null;
   }
@@ -97,22 +115,98 @@ class App extends Component<{}, State> {
     this.setState({ items });
   }
 
+  handleDrop = (e) => {
+    const rect = this.el.getBoundingClientRect();
+
+    const top = e.clientY - rect.y;
+    const left = e.clientX - rect.x;
+    const item = JSON.parse(e.dataTransfer.getData("item"));
+    const offsetX = Number(e.dataTransfer.getData("offsetX"));
+    const offsetY = Number(e.dataTransfer.getData("offsetY"));
+
+    const items = [...this.state.items, {
+      ...item,
+      top: top - offsetY,
+      left: left - offsetX,
+      id: getUUID(),
+    }];
+
+    localStorage.setItem('items', JSON.stringify(items))
+    this.setState({
+      items
+    });
+  }
+
+  handleDragStart = (e, item: Item) => {
+    const rect = e.target.getBoundingClientRect();
+    const offsetX = e.clientX - rect.left;
+    const offsetY = e.clientY - rect.top;
+    e.dataTransfer.setData('offsetX', offsetX);
+    e.dataTransfer.setData('offsetY', offsetY);
+    e.dataTransfer.setData('item', JSON.stringify(item));
+  }
+
+  renderDragItem = (item: Item) => {
+    if (item.type === 'image') {
+      return (
+        <div className="image-content" onDragStart={e => this.handleDragStart(e, item)} draggable style={{
+          width: item.width,
+          height: item.height
+        }}>
+          <img src={item.value} alt="" />
+        </div>
+      )
+    } else if (item.type === 'text') {
+      return (
+        <div
+          className="text-content" onDragStart={e => this.handleDragStart(e, item)} draggable style={{
+          width: item.width,
+          height: item.height
+        }}>
+          <input onChange={(e) => this.handleInputChange(e, item)} />
+        </div>
+      )
+    }
+
+    return null;
+  }
+
+  handleInputChange(e, item: Item) {
+    item.value = e.target.value;
+    this.forceUpdate()
+  }
+
+  reset = () => {
+    this.setState({items: []});
+    localStorage.removeItem('items')
+  }
+
   
   render() {
     return (
-      <div className="App" >
-        <Grid />
-        {
-          this.state.items.map(item => {
-            return (
-              <Drag container=".App" item={{...item}} handleClickItem={this.handleClickItem} key={item.id}>
-                {
-                  this.renderItem(item)
-                }
-              </Drag>
-            )
-          })
-        }
+      <div className="app" >
+        <div className="app-left">
+          <div className="tab-content">
+            {
+              this.state.items2.map(item =>this.renderDragItem(item))
+            }
+          </div>
+          <button onClick={this.reset}>Reset</button>
+        </div>
+        <div className="app-right" onDragOver={this.handleDragOver} onDrop={this.handleDrop} ref={el => this.el = el}>
+          <Grid />
+          {
+            this.state.items.map(item => {
+              return (
+                <Drag container=".app" item={{...item}} handleClickItem={this.handleClickItem} key={item.id}>
+                  {
+                    this.renderItem(item)
+                  }
+                </Drag>
+              )
+            })
+          }
+        </div>
       </div>
     );
   }

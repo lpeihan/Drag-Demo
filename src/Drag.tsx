@@ -50,6 +50,7 @@ export default class Drag extends Component<Props, State> {
   }
 
   handleMouseDown = (e: React.MouseEvent<HTMLElement>) => {
+    e.stopPropagation();
     const startX = e.clientX;
     const startY = e.clientY;
     const style = {...this.state.style};
@@ -59,6 +60,12 @@ export default class Drag extends Component<Props, State> {
     this.setState({isMouseDown: true})
 
     const handleMouseMove = (e: MouseEvent) => {
+      e.stopPropagation();
+
+      if (!this.state.isMouseDown) {
+        return;
+      }
+
       const currentX = e.clientX;
       const currentY = e.clientY;
 
@@ -183,6 +190,7 @@ export default class Drag extends Component<Props, State> {
         }}
         onMouseDown={this.handleMouseDown}
         onClick={this.handleClickItem}
+        onContextMenu={e => e.preventDefault()}
       >
         {
           points.map(point => (
