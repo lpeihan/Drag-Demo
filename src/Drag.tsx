@@ -19,7 +19,7 @@ interface State {
     height: number,
     top: number,
     left: number,
-    index: number,
+    index?: number,
   },
   isMouseDown: boolean,
 }
@@ -29,6 +29,8 @@ interface Props {
   item: Item,
   children: React.ReactNode;
   handleClickItem: (item: Item) => void;
+  handleContextMenu: (e) => void;
+  handleDragEnd: (item: Item) => void;
 }
 
 export default class Drag extends Component<Props, State> {
@@ -49,15 +51,29 @@ export default class Drag extends Component<Props, State> {
     }
   }
 
+  componentWillReceiveProps(nextProps: Readonly<Props>, nextContext: any): void {
+      this.setState({
+        style: {
+          width: nextProps.item.width,
+          height: nextProps.item.height,
+          left: nextProps.item.left,
+          top: nextProps.item.top,
+        }
+      })
+  }
+
   handleMouseDown = (e: React.MouseEvent<HTMLElement>) => {
     e.stopPropagation();
+    const {item, handleClickItem, handleDragEnd} = this.props;
+    handleClickItem(item);
+
     const startX = e.clientX;
     const startY = e.clientY;
     const style = {...this.state.style};
 
     const left = style.left;
     const top = style.top;
-    this.setState({isMouseDown: true})
+    this.setState({isMouseDown: true});
 
     const handleMouseMove = (e: MouseEvent) => {
       e.stopPropagation();
@@ -76,6 +92,7 @@ export default class Drag extends Component<Props, State> {
     }
 
     const handleMouseUp = () => {
+      handleDragEnd({...item, ...style})
       this.setState({isMouseDown: false});
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
@@ -91,6 +108,7 @@ export default class Drag extends Component<Props, State> {
     const startY = e.clientY;
     const style = { ...this.state.style };
     const { left, top, width, height } = style;
+    const {item, handleDragEnd} = this.props;
   
     const handleMouseMove = (e) => {
       const offsetX = e.clientX - startX;
@@ -151,6 +169,7 @@ export default class Drag extends Component<Props, State> {
     }
 
     const handleMouseUp = () => {
+      handleDragEnd({...item, ...style})
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     }
@@ -169,7 +188,7 @@ export default class Drag extends Component<Props, State> {
 
   render() {
     const {isMouseDown} = this.state;
-    const { children, item } = this.props;
+    const {children, item, handleContextMenu} = this.props;
     const points = [
       Point.Northwest,
       Point.North,
@@ -184,13 +203,13 @@ export default class Drag extends Component<Props, State> {
     return (
       <div className={"drag-wrapper"}
         style={{
-          // outline: item.current && "1px solid #70c0ff",
+          outline: item.current && "2px solid #70c0ff",
           cursor: isMouseDown ? 'grabbing' : 'pointer',
           ...this.state.style
         }}
         onMouseDown={this.handleMouseDown}
         onClick={this.handleClickItem}
-        onContextMenu={e => e.preventDefault()}
+        onContextMenu={handleContextMenu}
       >
         {
           points.map(point => (
