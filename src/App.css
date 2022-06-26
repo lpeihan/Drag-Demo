@@ -12,6 +12,24 @@
   width: 400px;
   background: white;
   outline: 1px solid black;
+  padding: 12px;
+  position: relative;
+}
+
+.button-wrapper {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+}
+
+button {
+  background: white;
+  width: 80px;
+  line-height: 30px;
+  border: 1px solid rgb(229, 231, 235);
+  margin-right: 12px;
+  border-radius: 4px;
+  cursor: pointer;
 }
 .image-content {
   cursor: pointer;
@@ -21,6 +39,60 @@
 .text-content {
   background: transparent;
   border: 2px solid #70c0ff;
+}
+
+
+.tab-title {
+  display: flex;
+  border: 1px solid rgb(229, 231, 235);
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+
+.text-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.background-wrapper {
+  padding: 0 20px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.text-wrapper .text-content {
+  margin-bottom: 12px;
+}
+
+.background-wrapper div {
+  margin-bottom: 12px;
+}
+
+.active {
+  color: rgb(79, 70, 229);
+}
+
+.tab-content {
+  padding: 12px 0;
+}
+
+.image-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.image-wrapper .image-content {
+  margin-bottom: 12px;
+}
+.title-item {
+  flex: 1;
+  text-align: center;
+  line-height: 44px;
 }
 input {
   width: 100%;
