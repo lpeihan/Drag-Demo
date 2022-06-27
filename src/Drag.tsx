@@ -22,6 +22,7 @@ interface State {
     index?: number,
   },
   isMouseDown: boolean,
+  isMoved: boolean,
 }
 
 interface Props {
@@ -47,7 +48,8 @@ export default class Drag extends Component<Props, State> {
         top,
         index,
       },
-      isMouseDown: false
+      isMouseDown: false,
+      isMoved: false,
     }
   }
 
@@ -73,7 +75,7 @@ export default class Drag extends Component<Props, State> {
 
     const left = style.left;
     const top = style.top;
-    this.setState({isMouseDown: true});
+    this.setState({isMouseDown: true, isMoved: false,});
 
     const handleMouseMove = (e: MouseEvent) => {
       e.stopPropagation();
@@ -88,11 +90,11 @@ export default class Drag extends Component<Props, State> {
       style.left = currentX - startX + left;
       style.top = currentY - startY + top;
 
-      this.setState({ style });
+      this.setState({style, isMoved: true});
     }
 
     const handleMouseUp = () => {
-      handleDragEnd({...item, ...style})
+      this.state.isMoved && handleDragEnd({...item, ...style})
       this.setState({isMouseDown: false});
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
@@ -107,8 +109,9 @@ export default class Drag extends Component<Props, State> {
     const startX = e.clientX;
     const startY = e.clientY;
     const style = { ...this.state.style };
-    const { left, top, width, height } = style;
+    const {left, top, width, height} = style;
     const {item, handleDragEnd} = this.props;
+    this.setState({isMoved: false,});
   
     const handleMouseMove = (e) => {
       const offsetX = e.clientX - startX;
@@ -165,11 +168,11 @@ export default class Drag extends Component<Props, State> {
           break;
         }
       }
-      this.setState({style});
+      this.setState({style, isMoved: true,});
     }
 
     const handleMouseUp = () => {
-      handleDragEnd({...item, ...style})
+      this.state.isMoved && handleDragEnd({...item, ...style});
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     }

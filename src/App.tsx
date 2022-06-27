@@ -13,7 +13,6 @@ function getUUID() {
   });
 }
 
-
 export interface Item {
   type?: string;
   top: number;
@@ -41,6 +40,13 @@ interface State {
   color2: string,
 }
 
+function getLocalItems() {
+  try {
+    return JSON.parse(localStorage.getItem('dragItems')) || [];
+  } catch (err) {
+    return []
+  }
+}
 class App extends Component<{}, State> {
   constructor(props) {
     super(props);
@@ -118,14 +124,14 @@ class App extends Component<{}, State> {
           color: "#e0d7c6",
         }
       ],
-      items: JSON.parse(localStorage.getItem('items')) || [],
+      items: getLocalItems(),
       contextPos: {
         left: 0,
         right: 0
       },
       currentID: "",
       isShowContext: false,
-      snapshots: [JSON.parse(localStorage.getItem('items')) || []],
+      snapshots: [getLocalItems()],
       snapshotsIndex: 0,
       currentTab: "NFT",
       color: "#000",
@@ -134,6 +140,18 @@ class App extends Component<{}, State> {
   }
 
   el: any;
+
+  componentDidMount(): void {
+    window.onkeydown = (e) => {
+      if (e.metaKey && e.code === 'KeyZ') {
+        this.undo()
+      }
+
+      if (e.metaKey && e.shiftKey && e.code === 'KeyZ') {
+        this.redo()
+      }
+    }
+  }
 
   handleDragOver(e) {
     e.preventDefault()
@@ -163,6 +181,8 @@ class App extends Component<{}, State> {
     return null;
   }
 
+  
+
   handleClickItem = (_item: Item) => {
     const items = this.state.items.map(item => {
       if (_item.id === item.id) {
@@ -178,8 +198,27 @@ class App extends Component<{}, State> {
     this.setState({ items, currentID: _item.id, isShowContext: false, });
   }
 
+  recordSnapshot = (items) => {
+    let snapshots = [...this.state.snapshots];
+    const snapshotsIndex = this.state.snapshotsIndex + 1;
+
+    snapshots[snapshotsIndex] = items;
+
+    if (snapshotsIndex < this.state.snapshots.length - 1) {
+      snapshots = snapshots.slice(0, snapshotsIndex);
+    }
+
+    localStorage.setItem('dragItems', JSON.stringify(items));
+    this.setState({
+      snapshots,
+      snapshotsIndex,
+      items
+    })
+  }
+
   handleDrop = (e) => {
     const rect = this.el.getBoundingClientRect();
+    console.log('!!')
 
     const top = e.clientY - rect.y;
     const left = e.clientX - rect.x;
@@ -197,18 +236,7 @@ class App extends Component<{}, State> {
       index: this.state.items.length + 1
     }];
 
-    let snapshots = [...this.state.snapshots, items];
-
-    if (this.state.snapshotsIndex < this.state.snapshots.length - 1) {
-      snapshots = snapshots.slice(0, this.state.snapshotsIndex + 1);
-    }
-    localStorage.setItem('items', JSON.stringify(items));
-
-    this.setState({
-      items,
-      snapshots,
-      snapshotsIndex: this.state.snapshotsIndex + 1
-    });
+    this.recordSnapshot(items)
   }
 
   handleDragStart = (e, item: Item) => {
@@ -241,7 +269,7 @@ class App extends Component<{}, State> {
           width: item.width,
           height: item.height
         }}>
-          <input onChange={(e) => this.handleInputChange(e, item)} defaultValue={item.value} style={{ color: this.state.color }} />
+          <input onChange={(e) => item.value = e.target.value} defaultValue={item.value} style={{ color: this.state.color }} />
         </div>
       )
     } else if (item.type === 'background') {
@@ -262,16 +290,12 @@ class App extends Component<{}, State> {
     item.value = e.target.value;
     
     const items = [...this.state.items];
-    localStorage.setItem('items', JSON.stringify(items));
-
-    this.setState({
-      items,
-    });
+    this.recordSnapshot(items);
   }
 
   reset = () => {
     this.setState({items: []});
-    localStorage.removeItem('items');
+    localStorage.removeItem('dragItems');
   }
 
   undo = () => {
@@ -284,7 +308,7 @@ class App extends Component<{}, State> {
       snapshotsIndex: index,
       items: snapshots[index],
     });
-    localStorage.setItem('items', JSON.stringify(snapshots[index]));
+    localStorage.setItem('dragItems', JSON.stringify(snapshots[index]));
   }
   redo = () => {
     const {snapshots, snapshotsIndex} = this.state;
@@ -294,7 +318,7 @@ class App extends Component<{}, State> {
     }
 
     const index = snapshotsIndex + 1;
-    localStorage.setItem('items', JSON.stringify(snapshots[index]));
+    localStorage.setItem('dragItems', JSON.stringify(snapshots[index]));
     this.setState({
       snapshotsIndex: index,
       items: snapshots[index],
@@ -331,7 +355,9 @@ class App extends Component<{}, State> {
     const newItems = [...items];
     const index = items.findIndex(item => item.id === currentID);
     newItems.splice(index, 1);
-    this.setState({items: newItems, isShowContext: false});
+
+    this.recordSnapshot(newItems);
+    this.setState({isShowContext: false});
   }
 
   handleMoveItem = (e, type) => {
@@ -359,7 +385,8 @@ class App extends Component<{}, State> {
       }
     }
 
-    this.setState({items, isShowContext: false});
+    this.recordSnapshot(items);
+    this.setState({isShowContext: false});
   }
 
   handleDragEnd = (item: Item) => {
@@ -368,17 +395,8 @@ class App extends Component<{}, State> {
     const index = items.findIndex(({id}) => item.id === id);
 
     items.splice(index, 1, item);
-    let snapshots = [...this.state.snapshots, items];
 
-    if (this.state.snapshotsIndex < this.state.snapshots.length - 1) {
-      snapshots = snapshots.slice(0, this.state.snapshotsIndex + 1);
-    }
-    localStorage.setItem('items', JSON.stringify(items));
-    this.setState({
-      items,
-      snapshots,
-      snapshotsIndex: this.state.snapshotsIndex + 1
-    });
+    this.recordSnapshot(items);
   }
 
   handleColorChange = (color) => {
